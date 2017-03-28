@@ -5,11 +5,26 @@ import (
 	"log"
 	"os"
 	"fmt"
-	"bytes"
+	"math"
 )
 
-func open_image( img_file string ) []byte {
-	file, err := os.Open(img_file)
+func FromTwoD(x int, y int, YMax int) (int, error) {
+	if ( y >= YMax ) {
+		return 0, fmt.Errorf("Matrix Index y out of image bounds %d", y)
+	}
+
+	return x*YMax+y, nil
+}
+
+func ToTwoD(n int, YMax int) [2]int {
+	CalcY := math.Mod(float64(n),float64(YMax))
+	CalcX := (n-int(CalcY))/YMax
+
+	return [2]int{int(CalcX), int(CalcY)}
+}
+
+func img_to_array( image_path string ) []int {
+	file, err := os.Open(image_path)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -20,17 +35,30 @@ func open_image( img_file string ) []byte {
 	}
 	file.Close()
 
-	buf := new(bytes.Buffer)
-	err = jpeg.Encode(buf, img, nil)
-	if err != nil {
-		log.Fatal(err)
+	XImgSize := img.Bounds().Max.X - img.Bounds().Min.X
+	YImgSize := img.Bounds().Max.Y - img.Bounds().Min.Y
+
+	Size := XImgSize*YImgSize
+
+	var LinearImage = make([]int, Size)
+
+	for x:=0; x < XImgSize; x++ {
+		for y:=0; y < YImgSize; y++ {
+			colour := img.At(img.Bounds().Min.X+x,img.Bounds().Min.Y+y)
+			r,g,b,_ := colour.RGBA()
+			pos, err := FromTwoD(x,y,YImgSize)
+			if err != nil {
+				log.Fatal(err)
+			}
+			LinearImage[pos] = int((r+g+b)/3)
+		}
 	}
 
-	return buf.Bytes()
+	return LinearImage
 }
 
 func main() {
 	in_image_path := os.Args[1]
-	image_array := open_image(in_image_path)
-	
+	ImageMatrix := img_to_array(in_image_path)
+	fmt.Println("%d", ImageMatrix[70])
 }
