@@ -13,14 +13,12 @@ func From2D(x int, y int, YMax int) (int, error) {
 	if ( y >= YMax ) {
 		return 0, fmt.Errorf("Matrix Index y out of image bounds %d", y)
 	}
-
 	return x*YMax+y, nil
 }
 
 func To2D(n int, YMax int) [2]int {
 	CalcY := math.Mod(float64(n),float64(YMax))
 	CalcX := (n-int(CalcY))/YMax
-
 	return [2]int{int(CalcX), int(CalcY)}
 }
 
@@ -58,6 +56,10 @@ func img_to_array( img image.Image ) []uint32 {
 		}
 	}
 	return LinearImage
+}
+
+func array_to_image( img_arr []int32, y_size int ) image.Image {
+	
 }
 
 func main() {
